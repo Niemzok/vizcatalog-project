@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h1>Welcome to the Viz Gallery</h1>
+
+<a href="{{url_for('newCategory')}}">New Category</a>
+
+<ul>
+{% for category in categories%}
+  <li>{{category.name}}</li>
+
+ {%endfor%}
+ </ul>
+
+{% endblock %}
