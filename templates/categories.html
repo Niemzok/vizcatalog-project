@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
+{% include "header.html" %}
 
 <h1>Welcome to the Viz Gallery</h1>
 
@@ -7,7 +8,7 @@
 
 <ul>
 {% for category in categories%}
-  <li>{{category.name}}</li>
+  <li> <a href="{{url_for('showCategory', category_id=category.id)}}">{{category.name}}</a></li>
 
  {%endfor%}
  </ul>

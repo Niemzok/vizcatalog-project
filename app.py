@@ -177,7 +177,7 @@ def gdisconnect():
         del login_session['user_id']
     	response = make_response(json.dumps('Successfully disconnected.'), 200)
     	response.headers['Content-Type'] = 'application/json'
-    	return response
+    	return redirect(url_for('showLogin'))
     else:
 
     	response = make_response(json.dumps('Failed to revoke token for given user.', 400))
@@ -185,12 +185,33 @@ def gdisconnect():
     	return response
 
 
+# Disconnect based on provider
+@app.route('/disconnect')
+def disconnect():
+    if 'provider' in login_session:
+        if login_session['provider'] == 'google':
+            gdisconnect()
+        if login_session['provider'] == 'facebook':
+            fbdisconnect()
+            del login_session['facebook_id']
+        del login_session['username']
+        del login_session['email']
+        del login_session['picture']
+        del login_session['user_id']
+        del login_session['provider']
+        flash("You have successfully been logged out.")
+        return redirect(url_for('showLogin'))
+    else:
+        flash("You were not logged in")
+        return redirect(url_for('showLogin'))
+
+
 @app.route('/login')
 def showLogin(  ):
     state = ''.join(random.choice(string.ascii_uppercase+string.digits
             ) for x in xrange(32))
     login_session['state'] = state
-    return render_template('login.html', STATE=state)
+    return render_template('login.html', STATE=state, session=login_session)
 
 
 @app.route('/')
@@ -206,8 +227,8 @@ def showHome():
 @app.route('/category/new', methods=['GET','POST'])
 def newCategory():
     if request.method == 'POST':
-        newCategory = Category(name = request.form['name'])#,
-                                     #user_id = login_session['user_id'])
+        newCategory = Category(name = request.form['name'],
+                               user_id = login_session['user_id'])
         session.add(newCategory)
         flash('New Category %s Successfully Created' % newCategory.name)
         session.commit()
@@ -215,6 +236,13 @@ def newCategory():
     else:
         return render_template('newcategory.html')
 
+#show a specific category page
+
+@app.route('/category/<int:category_id>/', methods=['GET','POST'])
+def showCategory(category_id):
+    category = session.query(Category).filter_by(id = category_id).one()
+    if 'user_id' in login_session:
+        return render_template('category.html', category=category)
 
 
 
