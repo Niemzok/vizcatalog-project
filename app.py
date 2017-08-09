@@ -4,7 +4,7 @@ from flask import Flask, render_template, request, redirect,jsonify, url_for
 from flask import session as login_session, flash, make_response
 from sqlalchemy import create_engine, asc
 from sqlalchemy.orm import sessionmaker
-from db_setup import Base, Category, User
+from db_setup import Base, Category, User, Viz
 from oauth2client.client import flow_from_clientsecrets
 from oauth2client.client import FlowExchangeError
 
@@ -241,8 +241,27 @@ def newCategory():
 @app.route('/category/<int:category_id>/', methods=['GET','POST'])
 def showCategory(category_id):
     category = session.query(Category).filter_by(id = category_id).one()
+    vizzes =  session.query(Viz).filter_by(category_id = category_id).all()
     if 'user_id' in login_session:
-        return render_template('category.html', category=category)
+        return render_template('category.html', category=category, vizzes=vizzes)
+
+@app.route('/category/<int:category_id>/viz/new', methods=['GET','POST'])
+def newViz(category_id):
+    if 'user_id' not in login_session:
+        return redirect(url_for('showHome'))
+    if request.method == 'POST':
+        newViz = Viz(name = request.form['name'],
+                     description = request.form['description'],
+                     link = request.form['link'],
+                     author_name = request.form['author_name'],
+                     user_id = login_session['user_id'],
+                     category_id = category_id)
+        session.add(newViz)
+        flash('New Viz %s Successfully Created' % newViz.name)
+        session.commit()
+        return redirect(url_for('showCategory'))
+    else:
+        return render_template('newviz.html')
 
 
 

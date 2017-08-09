@@ -32,7 +32,8 @@ class Viz(Base):
     author_name = Column(String(250), nullable=False)
     user_id = Column(Integer,ForeignKey('user.id'), nullable=False)
     user = relationship(User)
-
+    category_id = Column(Integer,ForeignKey('category.id'), nullable=False)
+    category = relationship(Category)
 
 engine = create_engine('sqlite:///vizzes.db')
 

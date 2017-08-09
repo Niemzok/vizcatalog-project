@@ -6,8 +6,17 @@
 
 <h2>By {{category.user.name}}</h2>
 
-<a href="{{url_for('newCategory')}}">New Viz</a>
+<a href="{{url_for('newViz', category_id=category.id)}}">New Viz</a>
 
-List of vizzes coming here.
+{% if vizzes%}
+<ul>
+{% for viz in vizzes%}
+  <li> <a href="{{url_for('#', )}}">{{viz.name}}</a></li>
 
+ {%endfor%}
+ </ul>
+{% else %}
+
+<p>No vizzes yet</p>
+ {%endif%}
 {% endblock %}
