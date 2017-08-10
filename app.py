@@ -216,7 +216,7 @@ def showLogin(  ):
 
 @app.route('/')
 def showHome():
-    if 'user_id'in login_session:
+    if 'user_id'not in login_session:
         categories = session.query(Category).order_by(asc(Category.name))
         return render_template('categories.html', categories=categories)
     else:

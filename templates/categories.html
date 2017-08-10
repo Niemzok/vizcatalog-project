@@ -2,15 +2,22 @@
 {% block content %}
 {% include "header.html" %}
 
-<h1>Welcome to the Viz Gallery</h1>
+  <div class="page-header">
+    <h1>Welcome to the Viz Gallery</h1>
+  </div>
 
-<a href="{{url_for('newCategory')}}">New Category</a>
+<div class="row">
+  <button class="btn btn-default">
+  		<span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+  <a href="{{url_for('newCategory')}}">New Category</a>
+</div>
+<br>
 
-<ul>
+<div class="list-group">
 {% for category in categories%}
-  <li> <a href="{{url_for('showCategory', category_id=category.id)}}">{{category.name}}</a></li>
+  <a  class="list-group-item" href="{{url_for('showCategory', category_id=category.id)}}">{{category.name}}</a>
 
  {%endfor%}
- </ul>
+ </div>
 
 {% endblock %}
