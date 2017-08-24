@@ -216,7 +216,7 @@ def showLogin(  ):
 
 @app.route('/')
 def showHome():
-    if 'user_id'not in login_session:
+    if 'user_id' in login_session:
         categories = session.query(Category).order_by(asc(Category.name))
         return render_template('categories.html', categories=categories)
     else:
@@ -236,6 +236,20 @@ def newCategory():
     else:
         return render_template('newcategory.html')
 
+#Delete a Category
+@app.route('/category/<int:category_id>/delete/', methods = ['GET','POST'])
+def deleteCategory(category_id):
+    if 'username' not in login_session:
+        return redirect('/login')
+    categoryToDelete = session.query(Category).filter_by(id = category_id).one()
+    if request.method == 'POST':
+        session.delete(categoryToDelete)
+        flash('%s Successfully Deleted' % categoryToDelete.name)
+        session.commit()
+        return redirect(url_for('showHome'))
+    else:
+        return render_template('deletecategory.html',category = categoryToDelete)
+
 #show a specific category page
 
 @app.route('/category/<int:category_id>/', methods=['GET','POST'])
@@ -251,18 +265,26 @@ def newViz(category_id):
         return redirect(url_for('showHome'))
     if request.method == 'POST':
         newViz = Viz(name = request.form['name'],
-                     description = request.form['description'],
+                     descrption = request.form['description'],
                      link = request.form['link'],
                      author_name = request.form['author_name'],
                      user_id = login_session['user_id'],
                      category_id = category_id)
         session.add(newViz)
         flash('New Viz %s Successfully Created' % newViz.name)
+        print 'new Viz is here'
         session.commit()
-        return redirect(url_for('showCategory'))
+        return redirect(url_for('showCategory', category_id=category_id))
     else:
         return render_template('newviz.html')
 
+@app.route('/category/<int:category_id>/viz/<int:viz_id>', methods=['GET','POST'])
+def showViz(category_id, viz_id):
+    if 'user_id' not in login_session:
+        return redirect(url_for('showHome'))
+    else:
+        viz = session.query(Viz).filter_by(id = viz_id).one()
+        return render_template('viz.html', viz=viz)
 
 
 if __name__ == '__main__':
