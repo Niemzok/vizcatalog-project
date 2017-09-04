@@ -216,18 +216,19 @@ def showLogin(  ):
 
 @app.route('/')
 def showHome():
-    if 'user_id' in login_session:
-        categories = session.query(Category).order_by(asc(Category.name))
-        return render_template('categories.html', categories=categories)
-    else:
-        state = ''.join(random.choice(string.ascii_uppercase+string.digits
-                ) for x in xrange(32))
-        return redirect(url_for('showLogin'))
+    #if 'user_id' in login_session:
+    categories = session.query(Category).order_by(asc(Category.name))
+    return render_template('categories.html', categories=categories)
+    #else:
+    #    state = ''.join(random.choice(string.ascii_uppercase+string.digits
+    #            ) for x in xrange(32))
+    #    return redirect(url_for('showLogin'))
 
 @app.route('/category/new', methods=['GET','POST'])
 def newCategory():
     if request.method == 'POST':
         newCategory = Category(name = request.form['name'],
+                               description = request.form['description'],
                                user_id = login_session['user_id'])
         session.add(newCategory)
         flash('New Category %s Successfully Created' % newCategory.name)
@@ -235,6 +236,25 @@ def newCategory():
         return redirect(url_for('showHome'))
     else:
         return render_template('newcategory.html')
+
+#Edit a Category
+@app.route('/category/<int:category_id>/edit/', methods = ['GET','POST'])
+def editCategory(category_id):
+    if 'username' not in login_session:
+        return redirect('/login')
+    categoryToEdit = session.query(Category).filter_by(id = category_id).one()
+    if request.method == 'POST':
+        if request.form['name']:
+            categoryToEdit.name = request.form['name']
+        if request.form['description']:
+            categoryToEdit.description = request.form['description']
+        session.add(categoryToEdit)
+        flash('Viz %s Successfully Created' % categoryToEdit.name)
+        session.commit()
+        return redirect(url_for('showHome'))
+    else:
+        return render_template('deletecategory.html',category = categoryToDelete)
+
 
 #Delete a Category
 @app.route('/category/<int:category_id>/delete/', methods = ['GET','POST'])
@@ -265,9 +285,11 @@ def newViz(category_id):
         return redirect(url_for('showHome'))
     if request.method == 'POST':
         newViz = Viz(name = request.form['name'],
-                     descrption = request.form['description'],
+                     description = request.form['description'],
                      link = request.form['link'],
                      author_name = request.form['author_name'],
+                     height = request.form['height'],
+                     width = request.form['width'],
                      user_id = login_session['user_id'],
                      category_id = category_id)
         session.add(newViz)
@@ -284,7 +306,51 @@ def showViz(category_id, viz_id):
         return redirect(url_for('showHome'))
     else:
         viz = session.query(Viz).filter_by(id = viz_id).one()
-        return render_template('viz.html', viz=viz)
+        return render_template('viz.html', viz=viz, category_id=category_id )
+
+#Edit a Viz
+@app.route('/category/<int:category_id>/viz/<int:viz_id>/edit/', methods = ['GET','POST'])
+def editViz(category_id, viz_id):
+    if 'username' not in login_session:
+        return redirect('/login')
+    vizToEdit = session.query(Viz).filter_by(id = viz_id).one()
+    if request.method == 'POST':
+        if request.form['name']:
+            vizToEdit.name = request.form['name']
+        if request.form['description']:
+            vizToEdit.description = request.form['description']
+        if request.form['link']:
+            vizToEdit.link = request.form['link']
+        if request.form['author_name']:
+            vizToEdit.author_name = request.form['author_name']
+        if request.form['height']:
+            vizToEdit.height = request.form['height']
+        if request.form['width']:
+            vizToEdit.width = request.form['width']
+        session.add(vizToEdit)
+        flash('Viz %s Successfully Created' % vizToEdit.name)
+        session.commit()
+        return redirect(url_for('showViz', category_id=category_id,
+                                viz_id=vizToEdit.id))
+    else:
+        return render_template('editviz.html',viz = vizToEdit,
+                               category_id=category_id)
+
+#Delete a Viz
+@app.route('/category/<int:category_id>/viz/<int:viz_id>/delete/', methods = ['GET','POST'])
+def deleteViz(category_id, viz_id):
+    if 'username' not in login_session:
+        return redirect('/login')
+    vizToDelete = session.query(Viz).filter_by(id = viz_id).one()
+    if request.method == 'POST':
+        session.delete(vizToDelete)
+        flash('%s Successfully Deleted' % vizToDelete.name)
+        session.commit()
+        return redirect(url_for('showCategory', category_id=category_id))
+    else:
+        return render_template('deleteviz.html',viz = vizToDelete,
+                               category_id=category_id)
+
 
 
 if __name__ == '__main__':

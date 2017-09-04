@@ -18,7 +18,7 @@ class Category(Base):
 
     id = Column(Integer, primary_key=True)
     name = Column(String(250), nullable=False)
-    descrption = Column(String(800))
+    description = Column(String(800))
     user_id = Column(Integer,ForeignKey('user.id'), nullable=False)
     user = relationship(User)
 
@@ -27,9 +27,11 @@ class Viz(Base):
 
     id = Column(Integer, primary_key=True)
     name = Column(String(250), nullable=False)
-    descrption = Column(String(800))
+    description = Column(String(800))
     link = Column(String(250), nullable=False)
     author_name = Column(String(250), nullable=False)
+    height = Column(Integer)
+    width = Column(Integer)
     user_id = Column(Integer,ForeignKey('user.id'), nullable=False)
     user = relationship(User)
     category_id = Column(Integer,ForeignKey('category.id'), nullable=False)

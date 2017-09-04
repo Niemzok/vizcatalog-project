@@ -6,7 +6,7 @@
 	</div>
 	<div class="row">
 		<div class="col-md-11 col-md-offset-1 padding-none">
-			<h1>New Viz</h1>
+			<h1>Edit Viz {{viz.name}}</h1>
 		</div>
 	</div>
 	<div class="row">
@@ -14,21 +14,21 @@
 			<form action="#" method = "post">
 				<div class="form-group">
 					<label for="name">Name:</label>
-					<input type ="text" maxlength="50" class="form-control" name="name"placeholder="Name of the Viz">
+					<input type ="text" maxlength="50" class="form-control" name="name" value="{{viz.name}}">
 
 					<label for="description">Description:</label>
-					<textarea class="form-control" maxlength="250" rows="3" name="description" placeholder="Description of the viz"></textarea>
+					<textarea class="form-control" maxlength="250" rows="3" name="description"> {{viz.description}}</textarea>
 
 					<label for="link">Link:</label>
-						<input type ="text" class="form-control" maxlength="100" name="link" placeholder="Url e.g. www.viz.com">
+						<input type ="text" class="form-control" maxlength="100" name="link" value="{{viz.link}}">
           <label for="author_name">Author Name:</label>
-						<input type ="text" class="form-control" maxlength="50" name="author_name" placeholder="What is the name of the author?">
+						<input type ="text" class="form-control" maxlength="50" name="author_name" value="{{viz.author_name}}">
 					<label for="height">Make your viz look nice. What is its height and with in pixels?</label>
-						<input type="int" name="height" placeholder="Height e.g. 800px">
-						<input type="int" name="width" placeholder="Width e.g. 600px">
+						<input type="int" name="height" value="{{viz.height}}">
+						<input type="int" name="width" value="{{viz.width}}">
 
 					<button type="submit" class="btn btn-default" id="submit" type="submit">
-					<span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span>Create</button>
+					<span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span>Save</button>
 				</div>
 			</form>
 		</div>
