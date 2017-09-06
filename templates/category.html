@@ -29,12 +29,12 @@
 </div>
 
 {% if vizzes%}
-<ul>
-{% for viz in vizzes%}
-  <li> <a href="{{url_for('showViz', category_id=category.id, viz_id=viz.id)}}">{{viz.name}}</a></li>
+ <div class="list-group">
+ {% for viz in vizzes%}
+   <a  class="list-group-item" href="{{url_for('showViz', category_id=category.id, viz_id=viz.id)}}">{{viz.name}}</a>
 
- {%endfor%}
- </ul>
+  {%endfor%}
+  </div>
 {% else %}
 
 <p>No vizzes yet</p>

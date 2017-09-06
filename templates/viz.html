@@ -9,7 +9,7 @@
 			<h1>{{viz.name}}</h1>
 		</div>
 	</div>
-	<<div class="row padding-top padding-bottom">
+	<div class="row padding-top padding-bottom">
 	  <div class="col-md-1"></div>
 	  <div class="col-md-11 padding-none">
 	    <a href="{{url_for('editViz', category_id=category_id, viz_id=viz.id)}}">
@@ -26,7 +26,7 @@
 	  <div class="col-md-7"></div>
 	</div>
 	<div class="row">
-		<iframe src="{{viz.link}}?:showVizHome=no&:embed=true"
+		<iframe src="{{viz.link}}?:embed=y&:loadOrderID=0&:display_count=yes"
  width="{{viz.width}}" height="{{viz.height}}"></iframe>
 	</div>
 {% endblock %}

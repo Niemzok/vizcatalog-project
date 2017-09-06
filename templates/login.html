@@ -2,6 +2,8 @@
 <html>
 <head>
   <title>Login to Viz Gallery</title>
+  <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+  <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles.css') }}">
 
   <!--LOAD PRE-REQUISITES FOR GOOGLE SIGN IN -->
    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js">
@@ -16,6 +18,12 @@
 
 
 <body>
+  <div class="container">
+    <div class="row">
+      <div class="md-col-12">
+        <h1>Login to the viz Gallery</h1>
+      </div>
+    </div>
 
 
 <!-- GOOGLE PLUS SIGN IN-->
@@ -73,7 +81,7 @@ function signInCallback(authResult) {
 <script>
   window.fbAsyncInit = function() {
   FB.init({
-    appId      : '1089121201224200',
+    appId      : '122786748377845',
     cookie     : true,  // enable cookies to allow the server to access
                         // the session
     xfbml      : true,  // parse social plugins on this page
@@ -132,6 +140,7 @@ function signInCallback(authResult) {
 
         </button>
 <!--END FACEBOOK SIGN IN -->
+  </div>
 
   </body>
 
