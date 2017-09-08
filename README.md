@@ -19,6 +19,9 @@ Then access the shell with:
 
 `vagrant ssh`
 
+Move into the project folder in the virtual machine using
+`cd /vagrant`
+
 Initially setup the database by running:
 `python db_setup.py`
 
