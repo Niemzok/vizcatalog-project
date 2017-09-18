@@ -262,7 +262,6 @@ def gdisconnect():
         return response
     url = ('https://accounts.google.com/o/oauth2/revoke?token=%s' %
            login_session['access_token'])
-    print url
     h = httplib2.Http()
     result = h.request(url, 'GET')[0]
     print 'result is '
@@ -270,7 +269,7 @@ def gdisconnect():
     if result['status'] == '200':
         del login_session['access_token']
         del login_session['gplus_id']
-        del login_session['user_name']
+        del login_session['username']
         del login_session['email']
         del login_session['picture']
         del login_session['user_id']
@@ -288,6 +287,7 @@ def gdisconnect():
 # Disconnect based on provider
 @app.route('/disconnect')
 def disconnect():
+    print login_session['provider']
     if 'provider' in login_session:
         if login_session['provider'] == 'google':
             gdisconnect()
@@ -352,7 +352,7 @@ def editCategory(category_id):
     #make sure logged in user is the owner of the category
     if login_session['user_id'] != categoryToEdit.user_id:
         flash('You are not the owner of Category %s.' % categoryToEdit.name)
-        return redirect(url_for('showCategory',category_id=category_id))
+        return redirect(url_for('showCategory',category_id=category_id  ))
     if request.method == 'POST':
         if request.form['name']:
             categoryToEdit.name = request.form['name']
@@ -376,7 +376,7 @@ def deleteCategory(category_id):
     #make sure logged in user is the owner of the category
     if login_session['user_id'] != categoryToDelete.user_id:
         flash('You are not the owner of Category %s.' % categoryToDelete.name)
-        return redirect(url_for(showCategory(category_id)))
+        return redirect(url_for('showCategory', category_id=category_id))
     if request.method == 'POST':
         session.delete(categoryToDelete)
         flash('%s Successfully Deleted' % categoryToDelete.name)
@@ -439,7 +439,8 @@ def editViz(category_id, viz_id):
     #make sure logged in user is the owner of the viz
     if  login_session['user_id'] != vizToEdit.user_id:
         flash('You are not the owner of Viz %s.' % vizToEdit.name)
-        return redirect(url_for(showViz(category_id, viz_id)))
+        return redirect(url_for('showViz', category_id=category_id,
+                       viz_id=viz_id))
     if request.method == 'POST':
         if request.form['name']:
             vizToEdit.name = request.form['name']
@@ -472,8 +473,9 @@ def deleteViz(category_id, viz_id):
     vizToDelete = session.query(Viz).filter_by(id=viz_id).one()
     #make sure logged in user is the owner of the viz
     if  login_session['user_id'] != vizToDelete.user_id:
-        flash('You are not the owner of Viz %s.' % vizToDeletes.name)
-        return redirect(url_for(showViz(category_id, viz_id)))
+        flash('You are not the owner of Viz %s.' % vizToDelete.name)
+        return redirect(url_for('showViz', category_id=category_id,
+                       viz_id=viz_id))
     if request.method == 'POST':
         session.delete(vizToDelete)
         flash('%s Successfully Deleted' % vizToDelete.name)
