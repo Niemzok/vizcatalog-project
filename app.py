@@ -219,7 +219,7 @@ def gconnect():
     output += '<img src="'
     output += login_session['picture']
     output += ' " style = "width: 300px; height: 300px;border-radius: '
-    ouput += '150px;-webkit-border-radius: 150px;-moz-border-radius: 150px;"> '
+    output += '150px;-webkit-border-radius: 150px;-moz-border-radius: 150px;"> '
     flash("you are now logged in as %s" % login_session['username'])
     return output
 # User Helper Functions
@@ -270,7 +270,7 @@ def gdisconnect():
     if result['status'] == '200':
         del login_session['access_token']
         del login_session['gplus_id']
-        del login_session['name']
+        del login_session['user_name']
         del login_session['email']
         del login_session['picture']
         del login_session['user_id']
@@ -352,7 +352,7 @@ def editCategory(category_id):
     #make sure logged in user is the owner of the category
     if login_session['user_id'] != categoryToEdit.user_id:
         flash('You are not the owner of Category %s.' % categoryToEdit.name)
-        return redirect(url_for(showCategory(category_id)))
+        return redirect(url_for('showCategory',category_id=category_id))
     if request.method == 'POST':
         if request.form['name']:
             categoryToEdit.name = request.form['name']
@@ -363,8 +363,8 @@ def editCategory(category_id):
         session.commit()
         return redirect(url_for('showHome'))
     else:
-        return render_template('deletecategory.html',
-                               category=categoryToDelete)
+        return render_template('editcategory.html',
+                               category=categoryToEdit)
 
 
 # Delete a Category
