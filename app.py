@@ -140,22 +140,16 @@ def gconnect():
         return response
     # Obtain authorization code
     code = request.data
-    print 'Code:', code
-
     try:
         # Upgrade the authorization code into a credentials object
         oauth_flow = flow_from_clientsecrets('client_secrets.json', scope='')
-        print "oauth_flow created"
         oauth_flow.redirect_uri = 'postmessage'
-        print "redirect_uri created"
         credentials = oauth_flow.step2_exchange(code)
-        print "credentials created"
     except FlowExchangeError:
         print "1"
         response = make_response(
             json.dumps('Failed to upgrade the authorization code.'), 401)
         response.headers['Content-Type'] = 'application/json'
-        print response.__dict__
         return response
 
     # Check that the access token is valid.
@@ -227,7 +221,6 @@ def gconnect():
     output += ' " style = "width: 300px; height: 300px;border-radius: '
     ouput += '150px;-webkit-border-radius: 150px;-moz-border-radius: 150px;"> '
     flash("you are now logged in as %s" % login_session['username'])
-    print "done!"
     return output
 # User Helper Functions
 
@@ -257,7 +250,6 @@ def getUserID(email):
 # DISCONNECT - Revoke a current user's token and reset their login_session
 @app.route('/gdisconnect')
 def gdisconnect():
-    print login_session['access_token']
     access_token = login_session['access_token']
     print 'In gdisconnect access token is %s', login_session['access_token']
     print 'User name is: '
@@ -335,24 +327,32 @@ def showHome():
 
 @app.route('/category/new', methods=['GET', 'POST'])
 def newCategory():
-    if request.method == 'POST':
-        newCategory = Category(name=request.form['name'],
-                               description=request.form['description'],
-                               user_id=login_session['user_id'])
-        session.add(newCategory)
-        flash('New Category %s Successfully Created' % newCategory.name)
-        session.commit()
-        return redirect(url_for('showHome'))
+    if 'user_id' in login_session:
+        if request.method == 'POST':
+            newCategory = Category(name=request.form['name'],
+                                   description=request.form['description'],
+                                   user_id=login_session['user_id'])
+            session.add(newCategory)
+            flash('New Category %s Successfully Created' % newCategory.name)
+            session.commit()
+            return redirect(url_for('showHome'))
+        else:
+            return render_template('newcategory.html')
     else:
-        return render_template('newcategory.html')
+        return redirect('/login')
 
 
 # Edit a Category
 @app.route('/category/<int:category_id>/edit/', methods=['GET', 'POST'])
 def editCategory(category_id):
+    #Make sure user is logged in
     if 'username' not in login_session:
         return redirect('/login')
     categoryToEdit = session.query(Category).filter_by(id=category_id).one()
+    #make sure logged in user is the owner of the category
+    if login_session['user_id'] != categoryToEdit.user_id:
+        flash('You are not the owner of Category %s.' % categoryToEdit.name)
+        return redirect(url_for(showCategory(category_id)))
     if request.method == 'POST':
         if request.form['name']:
             categoryToEdit.name = request.form['name']
@@ -373,6 +373,10 @@ def deleteCategory(category_id):
     if 'username' not in login_session:
         return redirect('/login')
     categoryToDelete = session.query(Category).filter_by(id=category_id).one()
+    #make sure logged in user is the owner of the category
+    if login_session['user_id'] != categoryToDelete.user_id:
+        flash('You are not the owner of Category %s.' % categoryToDelete.name)
+        return redirect(url_for(showCategory(category_id)))
     if request.method == 'POST':
         session.delete(categoryToDelete)
         flash('%s Successfully Deleted' % categoryToDelete.name)
@@ -432,6 +436,10 @@ def editViz(category_id, viz_id):
     if 'username' not in login_session:
         return redirect('/login')
     vizToEdit = session.query(Viz).filter_by(id=viz_id).one()
+    #make sure logged in user is the owner of the viz
+    if  login_session['user_id'] != vizToEdit.user_id:
+        flash('You are not the owner of Viz %s.' % vizToEdit.name)
+        return redirect(url_for(showViz(category_id, viz_id)))
     if request.method == 'POST':
         if request.form['name']:
             vizToEdit.name = request.form['name']
@@ -462,6 +470,10 @@ def deleteViz(category_id, viz_id):
     if 'username' not in login_session:
         return redirect('/login')
     vizToDelete = session.query(Viz).filter_by(id=viz_id).one()
+    #make sure logged in user is the owner of the viz
+    if  login_session['user_id'] != vizToDelete.user_id:
+        flash('You are not the owner of Viz %s.' % vizToDeletes.name)
+        return redirect(url_for(showViz(category_id, viz_id)))
     if request.method == 'POST':
         session.delete(vizToDelete)
         flash('%s Successfully Deleted' % vizToDelete.name)
