@@ -3,6 +3,7 @@ import string
 import json
 import httplib2
 import requests
+from functools import wraps
 
 from flask import Flask, render_template, request, redirect, jsonify, url_for
 from flask import session as login_session, flash, make_response
@@ -116,17 +117,6 @@ def fbconnect():
 
     flash("Now logged in as %s" % login_session['username'])
     return output
-
-@app.route('/fbdisconnect')
-def fbdisconnect():
-    facebook_id = login_session['facebook_id']
-    # The access token must me included to successfully logout
-    access_token = login_session['access_token']
-    url = 'https://graph.facebook.com/%s/permissions?' \
-          'access_token=%s' % (facebook_id,access_token)
-    h = httplib2.Http()
-    result = h.request(url, 'DELETE')[1]
-    return "you have been logged out"
 
 
 # Setup Google Authentication
@@ -245,44 +235,14 @@ def getUserID(email):
         return user.id
     except:
         return None
-
-
-# DISCONNECT - Revoke a current user's token and reset their login_session
-@app.route('/gdisconnect')
-def gdisconnect():
-    access_token = login_session['access_token']
-    print 'In gdisconnect access token is %s', login_session['access_token']
-    print 'User name is: '
-    print login_session['username']
-    if access_token is None:
-        print 'Access Token is None'
-        response = make_response(json.dumps('Current user not connected.'),
-                                 401)
-        response.headers['Content-Type'] = 'application/json'
-        return response
-    url = ('https://accounts.google.com/o/oauth2/revoke?token=%s' %
-           login_session['access_token'])
-    h = httplib2.Http()
-    result = h.request(url, 'GET')[0]
-    print 'result is '
-    print result
-    if result['status'] == '200':
-        del login_session['access_token']
-        del login_session['gplus_id']
-        del login_session['username']
-        del login_session['email']
-        del login_session['picture']
-        del login_session['user_id']
-        response = make_response(json.dumps('Successfully disconnected.'), 200)
-        response.headers['Content-Type'] = 'application/json'
-        return redirect(url_for('showLogin'))
-    else:
-        response = make_response(json.dumps(
-                                 'Failed to revoke token for given user.',
-                                 400))
-        response.headers['Content-Type'] = 'application/json'
-        return response
-
+#Decorator to check whether a user is logged in
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'username' not in login_session:
+            return redirect('/login')
+        return f(*args, **kwargs)
+    return decorated_function
 
 # Disconnect based on provider
 @app.route('/disconnect')
@@ -290,9 +250,11 @@ def disconnect():
     print login_session['provider']
     if 'provider' in login_session:
         if login_session['provider'] == 'google':
-            gdisconnect()
+            del login_session['access_token']
+            del login_session['gplus_id']
+            #gdisconnect()
         if login_session['provider'] == 'facebook':
-            fbdisconnect()
+            #fbdisconnect()
             del login_session['facebook_id']
         del login_session['username']
         del login_session['email']
@@ -315,39 +277,32 @@ def showLogin():
 
 
 @app.route('/')
+@login_required
 def showHome():
-    if 'user_id' in login_session:
-        categories = session.query(Category).order_by(asc(Category.name))
-        return render_template('categories.html', categories=categories)
-    else:
-        state = ''.join(random.choice(string.ascii_uppercase+string.digits)
-                        for x in xrange(32))
-        return redirect(url_for('showLogin'))
+    categories = session.query(Category).order_by(asc(Category.name))
+    return render_template('categories.html', categories=categories)
 
 
 @app.route('/category/new', methods=['GET', 'POST'])
+@login_required
 def newCategory():
-    if 'user_id' in login_session:
-        if request.method == 'POST':
-            newCategory = Category(name=request.form['name'],
-                                   description=request.form['description'],
-                                   user_id=login_session['user_id'])
-            session.add(newCategory)
-            flash('New Category %s Successfully Created' % newCategory.name)
-            session.commit()
-            return redirect(url_for('showHome'))
-        else:
-            return render_template('newcategory.html')
+    if request.method == 'POST':
+        newCategory = Category(name=request.form['name'],
+                               description=request.form['description'],
+                               user_id=login_session['user_id'])
+        session.add(newCategory)
+        flash('New Category %s Successfully Created' % newCategory.name)
+        session.commit()
+        return redirect(url_for('showHome'))
     else:
-        return redirect('/login')
+        return render_template('newcategory.html')
+
 
 
 # Edit a Category
 @app.route('/category/<int:category_id>/edit/', methods=['GET', 'POST'])
+@login_required
 def editCategory(category_id):
-    #Make sure user is logged in
-    if 'username' not in login_session:
-        return redirect('/login')
     categoryToEdit = session.query(Category).filter_by(id=category_id).one()
     #make sure logged in user is the owner of the category
     if login_session['user_id'] != categoryToEdit.user_id:
@@ -369,9 +324,8 @@ def editCategory(category_id):
 
 # Delete a Category
 @app.route('/category/<int:category_id>/delete/', methods=['GET', 'POST'])
+@login_required
 def deleteCategory(category_id):
-    if 'username' not in login_session:
-        return redirect('/login')
     categoryToDelete = session.query(Category).filter_by(id=category_id).one()
     #make sure logged in user is the owner of the category
     if login_session['user_id'] != categoryToDelete.user_id:
@@ -389,18 +343,17 @@ def deleteCategory(category_id):
 
 # show a specific category page
 @app.route('/category/<int:category_id>/', methods=['GET', 'POST'])
+@login_required
 def showCategory(category_id):
     category = session.query(Category).filter_by(id=category_id).one()
     vizzes = session.query(Viz).filter_by(category_id=category_id).all()
-    if 'user_id' in login_session:
-        return render_template('category.html',
-                               category=category, vizzes=vizzes)
+    return render_template('category.html',
+                           category=category, vizzes=vizzes)
 
 
 @app.route('/category/<int:category_id>/viz/new', methods=['GET', 'POST'])
+@login_required
 def newViz(category_id):
-    if 'user_id' not in login_session:
-        return redirect(url_for('showHome'))
     if request.method == 'POST':
         newViz = Viz(name=request.form['name'],
                      description=request.form['description'],
@@ -421,20 +374,17 @@ def newViz(category_id):
 
 @app.route('/category/<int:category_id>/viz/<int:viz_id>',
            methods=['GET', 'POST'])
+@login_required
 def showViz(category_id, viz_id):
-    if 'user_id' not in login_session:
-        return redirect(url_for('showHome'))
-    else:
-        viz = session.query(Viz).filter_by(id=viz_id).one()
-        return render_template('viz.html', viz=viz, category_id=category_id)
+    viz = session.query(Viz).filter_by(id=viz_id).one()
+    return render_template('viz.html', viz=viz, category_id=category_id)
 
 
 # Edit a Viz
 @app.route('/category/<int:category_id>/viz/<int:viz_id>/edit/',
            methods=['GET', 'POST'])
+@login_required
 def editViz(category_id, viz_id):
-    if 'username' not in login_session:
-        return redirect('/login')
     vizToEdit = session.query(Viz).filter_by(id=viz_id).one()
     #make sure logged in user is the owner of the viz
     if  login_session['user_id'] != vizToEdit.user_id:
@@ -467,9 +417,8 @@ def editViz(category_id, viz_id):
 # Delete a Viz
 @app.route('/category/<int:category_id>/viz/<int:viz_id>/delete/',
            methods=['GET', 'POST'])
+@login_required
 def deleteViz(category_id, viz_id):
-    if 'username' not in login_session:
-        return redirect('/login')
     vizToDelete = session.query(Viz).filter_by(id=viz_id).one()
     #make sure logged in user is the owner of the viz
     if  login_session['user_id'] != vizToDelete.user_id:

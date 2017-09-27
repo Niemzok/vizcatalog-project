@@ -21,6 +21,7 @@ class Category(Base):
     description = Column(String(800))
     user_id = Column(Integer,ForeignKey('user.id'), nullable=False)
     user = relationship(User)
+    viz = relationship('Viz', cascade='all, delete-orphan')
 
     @property
     def serialize(self):
